@@ -128,23 +128,23 @@
 <body>
 
 <header>
-  <h1>民泊 利益シミュレーター</h1>
-  <p>数字を入力して、月20万円・30万円への道筋を確認しましょう</p>
+  <h1>民泊 売上シミュレーター</h1>
+  <p>数字を入力して、月35万円への道筋を確認しましょう</p>
 </header>
 
 <div class="container">
 
   <!-- Goal card -->
   <div class="goal-card">
-    <div class="goal-label">今月の予想利益</div>
+    <div class="goal-label">今月の予想売上</div>
     <div class="goal-numbers">
       <div class="profit-big" id="profitDisplay">---</div>
-      <div class="goal-target">目標<span>200,000円</span></div>
+      <div class="goal-target">目標<span>350,000円</span></div>
     </div>
     <div class="bar-bg">
       <div class="bar-fill" id="barFill" style="width:0%; background:#27ae60;"></div>
     </div>
-    <div class="bar-labels"><span>0円</span><span>20万円</span><span>30万円</span></div>
+    <div class="bar-labels"><span>0円</span><span>35万円</span><span>50万円</span></div>
     <div class="status-msg bad" id="statusMsg">数字を入力してください</div>
   </div>
 
@@ -238,7 +238,7 @@
 
   <!-- 目標達成のシナリオ比較 -->
   <div class="section">
-    <h2>🎯 目標20万円に必要な条件</h2>
+    <h2>🎯 目標売上35万円に必要な条件</h2>
     <table id="scenarioTable">
       <thead>
         <tr>
@@ -249,7 +249,7 @@
       </thead>
       <tbody id="scenarioBody"></tbody>
     </table>
-    <p style="font-size:12px;color:#999;margin-top:8px">※ 固定費・清掃費・手数料は現在の設定値をもとに計算しています</p>
+    <p style="font-size:12px;color:#999;margin-top:8px">※ 売上 = 1泊の料金 × 稼働日数で計算しています</p>
   </div>
 
   <!-- ロードマップ -->
@@ -469,44 +469,40 @@
     document.getElementById('otherOut').textContent    = '−' + other.toLocaleString() + '円';
     document.getElementById('profitOut').textContent   = fmt(profit);
 
-    // Goal display
+    // Goal display (売上ベース)
     const disp = document.getElementById('profitDisplay');
-    disp.textContent = fmt(profit);
-    disp.className = 'profit-big ' + (profit < 0 ? 'negative' : profit < 150000 ? 'warning' : 'positive');
+    disp.textContent = fmt(grossRev);
+    disp.className = 'profit-big ' + (grossRev < 100000 ? 'negative' : grossRev < 350000 ? 'warning' : 'positive');
 
-    const pct = Math.max(0, Math.min(100, (profit / 300000) * 100));
+    const pct = Math.max(0, Math.min(100, (grossRev / 500000) * 100));
     const bar = document.getElementById('barFill');
     bar.style.width = pct + '%';
-    bar.style.background = profit < 0 ? '#e74c3c' : profit < 200000 ? '#f39c12' : '#27ae60';
+    bar.style.background = grossRev < 100000 ? '#e74c3c' : grossRev < 350000 ? '#f39c12' : '#27ae60';
 
     const msg = document.getElementById('statusMsg');
-    if (profit < 0) {
+    if (grossRev === 0) {
       msg.className = 'status-msg bad';
-      msg.textContent = '現在は赤字です。稼働日数を増やすか、料金を上げましょう。';
-    } else if (profit < 100000) {
+      msg.textContent = '数字を入力してください。';
+    } else if (grossRev < 175000) {
+      msg.className = 'status-msg bad';
+      msg.textContent = '目標35万円まであと ' + fmt(350000 - grossRev) + '。料金か稼働日数を増やしましょう。';
+    } else if (grossRev < 350000) {
       msg.className = 'status-msg warn';
-      msg.textContent = '目標まであと ' + fmt(200000 - profit) + '。料金か稼働日数を上げましょう。';
-    } else if (profit < 200000) {
-      msg.className = 'status-msg warn';
-      msg.textContent = '目標20万円まであと ' + fmt(200000 - profit) + '！もう少しです。';
-    } else if (profit < 300000) {
+      msg.textContent = '目標35万円まであと ' + fmt(350000 - grossRev) + '！もう少しです。';
+    } else if (grossRev < 500000) {
       msg.className = 'status-msg good';
-      msg.textContent = '目標20万円を達成！30万円まであと ' + fmt(300000 - profit) + '。';
+      msg.textContent = '目標35万円を達成！利益は ' + fmt(profit) + ' の見込みです。';
     } else {
       msg.className = 'status-msg good';
-      msg.textContent = '目標30万円を達成！素晴らしい運営です。';
+      msg.textContent = '売上50万円超え！利益は ' + fmt(profit) + ' の見込みです。';
     }
 
-    // Scenario table
+    // Scenario table（売上35万円ベース）
     const prices = [8000, 12000, 15000, 20000, 25000];
-    const fixedPlus = rent + util + other;
-    const avgStay = days > 0 && bookings > 0 ? days / bookings : 2;
     const body = document.getElementById('scenarioBody');
     body.innerHTML = '';
     prices.forEach(p => {
-      // cleanPerNight = clean / avgStay (cleaning cost spread over average stay length)
-      const revenuePerNight = p * (1 - feePct / 100) - clean / avgStay;
-      const needed = revenuePerNight > 0 ? Math.ceil((200000 + fixedPlus) / revenuePerNight) : Infinity;
+      const needed = p > 0 ? Math.ceil(350000 / p) : Infinity;
       const rate   = Math.round(needed / 31 * 100);
       const highlight = Math.abs(p - price) < 2000 ? ' class="highlight"' : '';
       const impossible = needed > 31 || !isFinite(needed);
