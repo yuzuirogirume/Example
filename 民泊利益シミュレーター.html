@@ -137,6 +137,11 @@
       <div class="val" id="daysVal">5 泊</div>
     </div>
     <div class="input-row">
+      <label>月の予約件数（チェックイン回数）</label>
+      <input type="range" id="bookingsSlider" min="0" max="31" step="1" value="3" oninput="syncFromSlider('bookings')">
+      <div class="val" id="bookingsVal">3 件</div>
+    </div>
+    <div class="input-row">
       <label>プラットフォーム手数料</label>
       <input type="range" id="feeSlider" min="0" max="20" step="1" value="3" oninput="syncFromSlider('fee')">
       <div class="val" id="feeVal">3 %</div>
@@ -178,7 +183,7 @@
       <div class="brow" style="padding-left:8px"><span class="label">純収入</span><span class="amount income" id="netRev">---</span></div>
       <div class="brow"><span class="label">家賃・ローン</span><span class="amount cost" id="rentOut">---</span></div>
       <div class="brow"><span class="label">光熱費</span><span class="amount cost" id="utilOut">---</span></div>
-      <div class="brow"><span class="label">清掃費合計</span><span class="amount cost" id="cleanOut">---</span></div>
+      <div class="brow"><span class="label">清掃費合計（<span id="cleanCount">-</span>件 × 単価）</span><span class="amount cost" id="cleanOut">---</span></div>
       <div class="brow"><span class="label">その他</span><span class="amount cost" id="otherOut">---</span></div>
       <div class="brow total"><span class="label">月の利益</span><span class="amount profit" id="profitOut">---</span></div>
     </div>
@@ -241,6 +246,11 @@
     if (key === 'price') {
       document.getElementById('priceInput').value = document.getElementById('priceSlider').value;
     }
+    if (key === 'bookings') {
+      const days     = parseInt(document.getElementById('daysSlider').value) || 0;
+      const bookings = parseInt(document.getElementById('bookingsSlider').value) || 0;
+      if (bookings > days) document.getElementById('bookingsSlider').value = days;
+    }
     calculate();
   }
 
@@ -261,13 +271,16 @@
     const clean  = parseInt(document.getElementById('cleanInput').value)  || 0;
     const other  = parseInt(document.getElementById('otherInput').value)  || 0;
 
-    document.getElementById('daysVal').textContent = days + ' 泊';
-    document.getElementById('feeVal').textContent  = feePct + ' %';
+    const bookings = parseInt(document.getElementById('bookingsSlider').value) || 0;
 
-    const grossRev   = price * days;
+    document.getElementById('daysVal').textContent     = days + ' 泊';
+    document.getElementById('bookingsVal').textContent = bookings + ' 件';
+    document.getElementById('feeVal').textContent      = feePct + ' %';
+
+    const grossRev    = price * days;
     const platformFee = Math.round(grossRev * feePct / 100);
-    const netRev     = grossRev - platformFee;
-    const cleanTotal = clean * days;
+    const netRev      = grossRev - platformFee;
+    const cleanTotal  = clean * bookings;
     const fixedTotal = rent + util + other;
     const totalCost  = fixedTotal + cleanTotal + platformFee;
     const profit     = grossRev - totalCost;
@@ -277,6 +290,7 @@
     document.getElementById('netRev').textContent      = fmt(netRev);
     document.getElementById('rentOut').textContent     = '−' + rent.toLocaleString() + '円';
     document.getElementById('utilOut').textContent     = '−' + util.toLocaleString() + '円';
+    document.getElementById('cleanCount').textContent  = bookings;
     document.getElementById('cleanOut').textContent    = '−' + cleanTotal.toLocaleString() + '円';
     document.getElementById('otherOut').textContent    = '−' + other.toLocaleString() + '円';
     document.getElementById('profitOut').textContent   = fmt(profit);
@@ -312,13 +326,16 @@
     // Scenario table
     const prices = [8000, 12000, 15000, 20000, 25000];
     const fixedPlus = rent + util + other;
+    const avgStay = days > 0 && bookings > 0 ? days / bookings : 2;
     const body = document.getElementById('scenarioBody');
     body.innerHTML = '';
     prices.forEach(p => {
-      const needed = Math.ceil((200000 + fixedPlus) / (p * (1 - feePct/100) - clean));
+      // cleanPerNight = clean / avgStay (cleaning cost spread over average stay length)
+      const revenuePerNight = p * (1 - feePct / 100) - clean / avgStay;
+      const needed = revenuePerNight > 0 ? Math.ceil((200000 + fixedPlus) / revenuePerNight) : Infinity;
       const rate   = Math.round(needed / 31 * 100);
       const highlight = Math.abs(p - price) < 2000 ? ' class="highlight"' : '';
-      const impossible = needed > 31;
+      const impossible = needed > 31 || !isFinite(needed);
       body.innerHTML += `<tr${highlight}>
         <td>${p.toLocaleString()}円</td>
         <td>${impossible ? '達成不可' : needed + '泊'}</td>
