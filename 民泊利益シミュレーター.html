@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>民泊 利益シミュレーター</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Helvetica Neue', Arial, sans-serif; background: #f5f5f5; color: #333; }
+
+    header {
+      background: #2c3e50;
+      color: white;
+      padding: 24px;
+      text-align: center;
+    }
+    header h1 { font-size: 22px; margin-bottom: 4px; }
+    header p { font-size: 13px; opacity: 0.8; }
+
+    .container { max-width: 720px; margin: 0 auto; padding: 20px; }
+
+    /* Goal bar */
+    .goal-card {
+      background: white;
+      border-radius: 12px;
+      padding: 20px 24px;
+      margin-bottom: 16px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    }
+    .goal-label { font-size: 13px; color: #888; margin-bottom: 8px; }
+    .goal-numbers { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 10px; }
+    .profit-big { font-size: 40px; font-weight: 700; }
+    .profit-big.positive { color: #27ae60; }
+    .profit-big.negative { color: #e74c3c; }
+    .profit-big.warning { color: #f39c12; }
+    .goal-target { font-size: 13px; color: #888; text-align: right; }
+    .goal-target span { display: block; font-size: 18px; font-weight: 600; color: #333; }
+    .bar-bg { background: #eee; border-radius: 99px; height: 14px; overflow: hidden; }
+    .bar-fill { height: 100%; border-radius: 99px; transition: width 0.4s; }
+    .bar-labels { display: flex; justify-content: space-between; font-size: 11px; color: #aaa; margin-top: 4px; }
+    .status-msg { margin-top: 12px; font-size: 14px; font-weight: 600; padding: 10px 14px; border-radius: 8px; }
+    .status-msg.bad { background: #fdecea; color: #c0392b; }
+    .status-msg.warn { background: #fef9e7; color: #b7770d; }
+    .status-msg.good { background: #eafaf1; color: #1e8449; }
+
+    /* Section */
+    .section { background: white; border-radius: 12px; padding: 20px 24px; margin-bottom: 16px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
+    .section h2 { font-size: 15px; font-weight: 700; margin-bottom: 16px; color: #2c3e50; display: flex; align-items: center; gap: 6px; }
+
+    /* Inputs */
+    .input-row { display: flex; align-items: center; margin-bottom: 14px; gap: 12px; }
+    .input-row label { flex: 1; font-size: 14px; color: #555; }
+    .input-row .val { font-size: 14px; font-weight: 700; color: #2c3e50; min-width: 90px; text-align: right; }
+    input[type=range] { flex: 1.2; accent-color: #2c3e50; }
+    .input-row input[type=number] {
+      width: 110px; padding: 6px 10px; border: 1.5px solid #ddd; border-radius: 8px;
+      font-size: 14px; text-align: right; color: #2c3e50; font-weight: 600;
+    }
+    .input-row input[type=number]:focus { outline: none; border-color: #2c3e50; }
+
+    /* Breakdown */
+    .breakdown { margin-top: 4px; }
+    .brow { display: flex; justify-content: space-between; font-size: 14px; padding: 8px 0; border-bottom: 1px solid #f0f0f0; }
+    .brow:last-child { border-bottom: none; }
+    .brow.total { font-weight: 700; font-size: 15px; border-top: 2px solid #2c3e50; margin-top: 4px; padding-top: 10px; }
+    .brow .label { color: #666; }
+    .brow .amount { font-weight: 600; }
+    .amount.income { color: #27ae60; }
+    .amount.cost { color: #e74c3c; }
+    .amount.profit { color: #2980b9; font-size: 16px; }
+
+    /* Roadmap */
+    .steps { list-style: none; counter-reset: step; }
+    .steps li {
+      counter-increment: step;
+      display: flex; gap: 12px; margin-bottom: 14px; align-items: flex-start;
+    }
+    .steps li::before {
+      content: counter(step);
+      background: #2c3e50; color: white;
+      width: 26px; height: 26px; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 13px; font-weight: 700; flex-shrink: 0;
+      margin-top: 1px;
+    }
+    .step-body { flex: 1; }
+    .step-title { font-size: 14px; font-weight: 700; margin-bottom: 2px; }
+    .step-desc { font-size: 13px; color: #666; line-height: 1.5; }
+    .step-tag { display: inline-block; background: #eaf0fb; color: #2471a3; border-radius: 4px; font-size: 11px; font-weight: 600; padding: 2px 6px; margin-top: 4px; }
+
+    /* Compare table */
+    table { width: 100%; border-collapse: collapse; font-size: 14px; }
+    th { background: #2c3e50; color: white; padding: 8px 12px; text-align: center; font-weight: 600; }
+    td { padding: 8px 12px; text-align: center; border-bottom: 1px solid #eee; }
+    tr:last-child td { border-bottom: none; }
+    tr.highlight td { background: #eafaf1; font-weight: 700; color: #1e8449; }
+    .now-col { color: #e74c3c; font-weight: 600; }
+
+    footer { text-align: center; font-size: 12px; color: #bbb; padding: 20px; }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>民泊 利益シミュレーター</h1>
+  <p>数字を入力して、月20万円・30万円への道筋を確認しましょう</p>
+</header>
+
+<div class="container">
+
+  <!-- Goal card -->
+  <div class="goal-card">
+    <div class="goal-label">今月の予想利益</div>
+    <div class="goal-numbers">
+      <div class="profit-big" id="profitDisplay">---</div>
+      <div class="goal-target">目標<span>200,000円</span></div>
+    </div>
+    <div class="bar-bg">
+      <div class="bar-fill" id="barFill" style="width:0%; background:#27ae60;"></div>
+    </div>
+    <div class="bar-labels"><span>0円</span><span>20万円</span><span>30万円</span></div>
+    <div class="status-msg bad" id="statusMsg">数字を入力してください</div>
+  </div>
+
+  <!-- 収入の設定 -->
+  <div class="section">
+    <h2>📈 収入の設定</h2>
+
+    <div class="input-row">
+      <label>1泊あたりの料金</label>
+      <input type="range" id="priceSlider" min="3000" max="50000" step="500" value="12000" oninput="syncFromSlider('price')">
+      <input type="number" id="priceInput" value="12000" min="3000" max="50000" step="500" oninput="syncFromInput('price')">
+    </div>
+    <div class="input-row">
+      <label>月の稼働日数（最大31日）</label>
+      <input type="range" id="daysSlider" min="0" max="31" step="1" value="5" oninput="syncFromSlider('days')">
+      <div class="val" id="daysVal">5 泊</div>
+    </div>
+    <div class="input-row">
+      <label>プラットフォーム手数料</label>
+      <input type="range" id="feeSlider" min="0" max="20" step="1" value="3" oninput="syncFromSlider('fee')">
+      <div class="val" id="feeVal">3 %</div>
+    </div>
+  </div>
+
+  <!-- 費用の設定 -->
+  <div class="section">
+    <h2>💸 費用の設定</h2>
+
+    <div class="input-row">
+      <label>家賃 / ローン（月額）</label>
+      <input type="number" id="rentInput" value="100000" min="0" step="1000" oninput="calculate()">
+      <span style="font-size:13px;color:#888;white-space:nowrap">円</span>
+    </div>
+    <div class="input-row">
+      <label>光熱費（月額）</label>
+      <input type="number" id="utilInput" value="15000" min="0" step="1000" oninput="calculate()">
+      <span style="font-size:13px;color:#888;white-space:nowrap">円</span>
+    </div>
+    <div class="input-row">
+      <label>清掃費（1回あたり）</label>
+      <input type="number" id="cleanInput" value="3000" min="0" step="500" oninput="calculate()">
+      <span style="font-size:13px;color:#888;white-space:nowrap">円</span>
+    </div>
+    <div class="input-row">
+      <label>その他費用（月額）</label>
+      <input type="number" id="otherInput" value="5000" min="0" step="1000" oninput="calculate()">
+      <span style="font-size:13px;color:#888;white-space:nowrap">円</span>
+    </div>
+  </div>
+
+  <!-- 収支内訳 -->
+  <div class="section">
+    <h2>📊 収支内訳</h2>
+    <div class="breakdown">
+      <div class="brow"><span class="label">宿泊料収入</span><span class="amount income" id="grossRev">---</span></div>
+      <div class="brow"><span class="label">プラットフォーム手数料</span><span class="amount cost" id="platformFee">---</span></div>
+      <div class="brow" style="padding-left:8px"><span class="label">純収入</span><span class="amount income" id="netRev">---</span></div>
+      <div class="brow"><span class="label">家賃・ローン</span><span class="amount cost" id="rentOut">---</span></div>
+      <div class="brow"><span class="label">光熱費</span><span class="amount cost" id="utilOut">---</span></div>
+      <div class="brow"><span class="label">清掃費合計</span><span class="amount cost" id="cleanOut">---</span></div>
+      <div class="brow"><span class="label">その他</span><span class="amount cost" id="otherOut">---</span></div>
+      <div class="brow total"><span class="label">月の利益</span><span class="amount profit" id="profitOut">---</span></div>
+    </div>
+  </div>
+
+  <!-- 目標達成のシナリオ比較 -->
+  <div class="section">
+    <h2>🎯 目標20万円に必要な条件</h2>
+    <table id="scenarioTable">
+      <thead>
+        <tr>
+          <th>1泊の料金</th>
+          <th>必要な稼働日数</th>
+          <th>稼働率</th>
+        </tr>
+      </thead>
+      <tbody id="scenarioBody"></tbody>
+    </table>
+    <p style="font-size:12px;color:#999;margin-top:8px">※ 固定費・清掃費・手数料は現在の設定値をもとに計算しています</p>
+  </div>
+
+  <!-- ロードマップ -->
+  <div class="section">
+    <h2>🗺️ 20万円への 3ステップロードマップ</h2>
+    <ul class="steps">
+      <li>
+        <div class="step-body">
+          <div class="step-title">今すぐ：レビューを5件集める</div>
+          <div class="step-desc">今は低価格でOK。レビューが5件以上になると検索順位が上がり、予約が入りやすくなります。目標は1ヶ月以内。</div>
+          <span class="step-tag">今月のタスク</span>
+        </div>
+      </li>
+      <li>
+        <div class="step-body">
+          <div class="step-title">来月：料金を段階的に上げる</div>
+          <div class="step-desc">レビューが揃ったら週末・祝日を高く、平日を少し安くする「変動価格」に切り替えます。平均単価が上がるだけで利益は大きく変わります。</div>
+          <span class="step-tag">+1〜2ヶ月</span>
+        </div>
+      </li>
+      <li>
+        <div class="step-body">
+          <div class="step-title">3ヶ月後：複数プラットフォームへ展開</div>
+          <div class="step-desc">Airbnbだけでは予約が限られます。じゃらん・楽天トラベルへの掲載で稼働日数が増えます。管理は「一元管理ツール」を使えば手間は最小限です。</div>
+          <span class="step-tag">+3ヶ月</span>
+        </div>
+      </li>
+    </ul>
+  </div>
+
+</div>
+
+<footer>民泊利益シミュレーター — 数字はすべて概算です</footer>
+
+<script>
+  function fmt(n) {
+    return (n < 0 ? '−' : '') + Math.abs(Math.round(n)).toLocaleString() + '円';
+  }
+
+  function syncFromSlider(key) {
+    if (key === 'price') {
+      document.getElementById('priceInput').value = document.getElementById('priceSlider').value;
+    }
+    calculate();
+  }
+
+  function syncFromInput(key) {
+    if (key === 'price') {
+      let v = parseInt(document.getElementById('priceInput').value) || 0;
+      document.getElementById('priceSlider').value = v;
+    }
+    calculate();
+  }
+
+  function calculate() {
+    const price  = parseInt(document.getElementById('priceSlider').value) || 0;
+    const days   = parseInt(document.getElementById('daysSlider').value)  || 0;
+    const feePct = parseInt(document.getElementById('feeSlider').value)   || 0;
+    const rent   = parseInt(document.getElementById('rentInput').value)   || 0;
+    const util   = parseInt(document.getElementById('utilInput').value)   || 0;
+    const clean  = parseInt(document.getElementById('cleanInput').value)  || 0;
+    const other  = parseInt(document.getElementById('otherInput').value)  || 0;
+
+    document.getElementById('daysVal').textContent = days + ' 泊';
+    document.getElementById('feeVal').textContent  = feePct + ' %';
+
+    const grossRev   = price * days;
+    const platformFee = Math.round(grossRev * feePct / 100);
+    const netRev     = grossRev - platformFee;
+    const cleanTotal = clean * days;
+    const fixedTotal = rent + util + other;
+    const totalCost  = fixedTotal + cleanTotal + platformFee;
+    const profit     = grossRev - totalCost;
+
+    document.getElementById('grossRev').textContent   = fmt(grossRev);
+    document.getElementById('platformFee').textContent = '−' + Math.abs(platformFee).toLocaleString() + '円';
+    document.getElementById('netRev').textContent      = fmt(netRev);
+    document.getElementById('rentOut').textContent     = '−' + rent.toLocaleString() + '円';
+    document.getElementById('utilOut').textContent     = '−' + util.toLocaleString() + '円';
+    document.getElementById('cleanOut').textContent    = '−' + cleanTotal.toLocaleString() + '円';
+    document.getElementById('otherOut').textContent    = '−' + other.toLocaleString() + '円';
+    document.getElementById('profitOut').textContent   = fmt(profit);
+
+    // Goal display
+    const disp = document.getElementById('profitDisplay');
+    disp.textContent = fmt(profit);
+    disp.className = 'profit-big ' + (profit < 0 ? 'negative' : profit < 150000 ? 'warning' : 'positive');
+
+    const pct = Math.max(0, Math.min(100, (profit / 300000) * 100));
+    const bar = document.getElementById('barFill');
+    bar.style.width = pct + '%';
+    bar.style.background = profit < 0 ? '#e74c3c' : profit < 200000 ? '#f39c12' : '#27ae60';
+
+    const msg = document.getElementById('statusMsg');
+    if (profit < 0) {
+      msg.className = 'status-msg bad';
+      msg.textContent = '現在は赤字です。稼働日数を増やすか、料金を上げましょう。';
+    } else if (profit < 100000) {
+      msg.className = 'status-msg warn';
+      msg.textContent = '目標まであと ' + fmt(200000 - profit) + '。料金か稼働日数を上げましょう。';
+    } else if (profit < 200000) {
+      msg.className = 'status-msg warn';
+      msg.textContent = '目標20万円まであと ' + fmt(200000 - profit) + '！もう少しです。';
+    } else if (profit < 300000) {
+      msg.className = 'status-msg good';
+      msg.textContent = '目標20万円を達成！30万円まであと ' + fmt(300000 - profit) + '。';
+    } else {
+      msg.className = 'status-msg good';
+      msg.textContent = '目標30万円を達成！素晴らしい運営です。';
+    }
+
+    // Scenario table
+    const prices = [8000, 12000, 15000, 20000, 25000];
+    const fixedPlus = rent + util + other;
+    const body = document.getElementById('scenarioBody');
+    body.innerHTML = '';
+    prices.forEach(p => {
+      const needed = Math.ceil((200000 + fixedPlus) / (p * (1 - feePct/100) - clean));
+      const rate   = Math.round(needed / 31 * 100);
+      const highlight = Math.abs(p - price) < 2000 ? ' class="highlight"' : '';
+      const impossible = needed > 31;
+      body.innerHTML += `<tr${highlight}>
+        <td>${p.toLocaleString()}円</td>
+        <td>${impossible ? '達成不可' : needed + '泊'}</td>
+        <td>${impossible ? '—' : rate + '%'}</td>
+      </tr>`;
+    });
+  }
+
+  calculate();
+</script>
+</body>
+</html>
