@@ -97,6 +97,32 @@
     .now-col { color: #e74c3c; font-weight: 600; }
 
     footer { text-align: center; font-size: 12px; color: #bbb; padding: 20px; }
+
+    /* CSV import */
+    .csv-zone {
+      border: 2px dashed #c0c8d4; border-radius: 10px;
+      padding: 20px; text-align: center; cursor: pointer;
+      transition: border-color 0.2s, background 0.2s;
+      margin-bottom: 16px;
+    }
+    .csv-zone:hover, .csv-zone.drag-over { border-color: #2c3e50; background: #f0f4f8; }
+    .csv-zone p { font-size: 14px; color: #888; margin: 0; }
+    .csv-zone p strong { color: #2c3e50; display: block; font-size: 15px; margin-bottom: 4px; }
+    .csv-result {
+      background: #eaf4fb; border-radius: 8px; padding: 12px 16px;
+      margin-bottom: 16px; display: none;
+    }
+    .csv-result .csv-title { font-size: 13px; font-weight: 700; color: #1a5276; margin-bottom: 8px; }
+    .csv-result .csv-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; }
+    .csv-result .csv-cell { background: white; border-radius: 6px; padding: 8px 10px; text-align: center; }
+    .csv-result .csv-cell .num { font-size: 18px; font-weight: 700; color: #2c3e50; }
+    .csv-result .csv-cell .lbl { font-size: 11px; color: #888; margin-top: 2px; }
+    .csv-result .csv-note { font-size: 11px; color: #7f8c8d; margin-top: 8px; }
+    .csv-result .csv-clear { float: right; font-size: 12px; color: #e74c3c; cursor: pointer; background: none; border: none; padding: 0; }
+    .csv-month-row { display: flex; align-items: center; gap: 8px; margin-bottom: 12px; }
+    .csv-month-row label { font-size: 13px; color: #555; white-space: nowrap; }
+    .csv-month-row select { padding: 4px 8px; border: 1.5px solid #ddd; border-radius: 6px; font-size: 13px; color: #2c3e50; }
+    .from-csv { font-size: 11px; background: #2980b9; color: white; border-radius: 3px; padding: 1px 5px; vertical-align: middle; margin-left: 4px; }
   </style>
 </head>
 <body>
@@ -125,6 +151,27 @@
   <!-- 収入の設定 -->
   <div class="section">
     <h2>📈 収入の設定</h2>
+
+    <!-- CSV import zone -->
+    <div class="csv-zone" id="csvZone" onclick="document.getElementById('csvFile').click()">
+      <input type="file" id="csvFile" accept=".csv" style="display:none" onchange="onFileSelect(event)">
+      <p><strong>AirbnbのCSVを読み込む</strong>Airbnb管理画面 → 取引履歴 → エクスポートしたCSVをここにドロップ</p>
+    </div>
+
+    <div class="csv-result" id="csvResult">
+      <button class="csv-clear" onclick="clearCSV()">✕ クリア</button>
+      <div class="csv-title" id="csvTitle">CSVから読み込み</div>
+      <div class="csv-month-row">
+        <label>対象月：</label>
+        <select id="monthSelect" onchange="applyMonth()"></select>
+      </div>
+      <div class="csv-grid">
+        <div class="csv-cell"><div class="num" id="csvRevNum">—</div><div class="lbl">収入合計（円）</div></div>
+        <div class="csv-cell"><div class="num" id="csvNightsNum">—</div><div class="lbl">稼働日数（泊）</div></div>
+        <div class="csv-cell"><div class="num" id="csvBookingsNum">—</div><div class="lbl">予約件数（件）</div></div>
+      </div>
+      <div class="csv-note" id="csvNote"></div>
+    </div>
 
     <div class="input-row">
       <label>1泊あたりの料金</label>
@@ -238,6 +285,133 @@
 <footer>民泊利益シミュレーター — 数字はすべて概算です</footer>
 
 <script>
+  // ── CSV Import ──────────────────────────────────────────────
+  let csvRows = [];
+
+  const zone = document.getElementById('csvZone');
+  zone.addEventListener('dragover', e => { e.preventDefault(); zone.classList.add('drag-over'); });
+  zone.addEventListener('dragleave', () => zone.classList.remove('drag-over'));
+  zone.addEventListener('drop', e => {
+    e.preventDefault(); zone.classList.remove('drag-over');
+    const file = e.dataTransfer.files[0];
+    if (file) readCSVFile(file);
+  });
+
+  function onFileSelect(e) { if (e.target.files[0]) readCSVFile(e.target.files[0]); }
+
+  function readCSVFile(file) {
+    const reader = new FileReader();
+    reader.onload = ev => parseAirbnbCSV(ev.target.result);
+    reader.readAsText(file, 'UTF-8');
+  }
+
+  function parseCSV(text) {
+    text = text.replace(/^﻿/, '').replace(/\r\n/g, '\n').replace(/\r/g, '\n');
+    const lines = text.split('\n').filter(l => l.trim());
+    const result = [];
+    const header = splitCSVLine(lines[0]).map(h => h.trim().toLowerCase());
+    for (let i = 1; i < lines.length; i++) {
+      const vals = splitCSVLine(lines[i]);
+      const row = {};
+      header.forEach((h, idx) => { row[h] = (vals[idx] || '').trim(); });
+      result.push(row);
+    }
+    return result;
+  }
+
+  function splitCSVLine(line) {
+    const result = []; let cur = ''; let inQ = false;
+    for (let i = 0; i < line.length; i++) {
+      const c = line[i];
+      if (c === '"') { inQ = !inQ; }
+      else if (c === ',' && !inQ) { result.push(cur); cur = ''; }
+      else { cur += c; }
+    }
+    result.push(cur);
+    return result;
+  }
+
+  function colVal(row, candidates) {
+    for (const k of candidates) {
+      if (row[k] !== undefined) return row[k];
+    }
+    return '';
+  }
+
+  function parseAirbnbCSV(text) {
+    const rows = parseCSV(text);
+    if (!rows.length) { alert('CSVを読み取れませんでした。'); return; }
+
+    const reservations = rows.filter(r => {
+      const t = colVal(r, ['type', 'タイプ']).toLowerCase();
+      return t.includes('reservation') || t.includes('予約');
+    });
+
+    if (!reservations.length) {
+      alert('予約データが見つかりませんでした。\nAirbnbの「取引履歴」CSVを使用してください。');
+      return;
+    }
+
+    csvRows = reservations.map(r => {
+      const dateStr = colVal(r, ['date', '日付', 'start date', 'チェックイン日']);
+      const nights  = parseInt(colVal(r, ['nights', '泊数'])) || 0;
+      const amtStr  = colVal(r, ['amount', '金額']).replace(/[^0-9.\-]/g, '');
+      const amount  = parseFloat(amtStr) || 0;
+      const date    = dateStr ? new Date(dateStr) : null;
+      const month   = date ? `${date.getFullYear()}-${String(date.getMonth()+1).padStart(2,'0')}` : 'unknown';
+      return { month, nights, amount: Math.abs(amount) };
+    });
+
+    const months = [...new Set(csvRows.map(r => r.month))].filter(m => m !== 'unknown').sort().reverse();
+    const sel = document.getElementById('monthSelect');
+    sel.innerHTML = months.map(m => `<option value="${m}">${m.replace('-','年')}月</option>`).join('');
+
+    document.getElementById('csvResult').style.display = 'block';
+    document.getElementById('csvTitle').textContent = `CSVから読み込み（予約 ${reservations.length}件）`;
+    applyMonth();
+  }
+
+  function applyMonth() {
+    const month = document.getElementById('monthSelect').value;
+    const rows  = month ? csvRows.filter(r => r.month === month) : csvRows;
+    const totalRev     = Math.round(rows.reduce((s, r) => s + r.amount, 0));
+    const totalNights  = rows.reduce((s, r) => s + r.nights, 0);
+    const totalBookings = rows.length;
+    const avgPrice     = totalNights > 0 ? Math.round(totalRev / totalNights) : 0;
+
+    document.getElementById('csvRevNum').textContent      = totalRev.toLocaleString();
+    document.getElementById('csvNightsNum').textContent   = totalNights;
+    document.getElementById('csvBookingsNum').textContent = totalBookings;
+    document.getElementById('csvNote').textContent        =
+      `平均単価 ${avgPrice.toLocaleString()}円/泊 ｜ 金額はAirbnbが手数料を差し引いた後の受取額です。手数料スライダーは0%にしてください。`;
+
+    // fill sliders
+    const clampedNights = Math.min(totalNights, 31);
+    document.getElementById('daysSlider').value  = clampedNights;
+    document.getElementById('daysVal').textContent = clampedNights + ' 泊';
+
+    const clampedBookings = Math.min(totalBookings, clampedNights);
+    document.getElementById('bookingsSlider').value = clampedBookings;
+    document.getElementById('bookingsVal').textContent = clampedBookings + ' 件';
+
+    const clampedPrice = Math.max(3000, Math.min(50000, avgPrice));
+    document.getElementById('priceSlider').value = clampedPrice;
+    document.getElementById('priceInput').value  = clampedPrice;
+
+    document.getElementById('feeSlider').value = 0;
+    document.getElementById('feeVal').textContent = '0 %';
+
+    calculate();
+  }
+
+  function clearCSV() {
+    csvRows = [];
+    document.getElementById('csvResult').style.display = 'none';
+    document.getElementById('csvFile').value = '';
+    calculate();
+  }
+  // ─────────────────────────────────────────────────────────────
+
   function fmt(n) {
     return (n < 0 ? '−' : '') + Math.abs(Math.round(n)).toLocaleString() + '円';
   }
