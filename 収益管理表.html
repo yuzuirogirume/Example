@@ -3,17 +3,15 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>民泊収益管理表 | 宮崎市</title>
+  <title>民泊収支管理表 | 宮崎市</title>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
-
     body {
       font-family: 'Hiragino Kaku Gothic ProN', 'Meiryo', sans-serif;
       background: #f0f4f8;
       color: #2d3748;
       min-height: 100vh;
     }
-
     header {
       background: linear-gradient(135deg, #2b6cb0, #4299e1);
       color: white;
@@ -26,10 +24,9 @@
     header .icon { font-size: 32px; }
     header h1 { font-size: 22px; font-weight: 700; }
     header p { font-size: 13px; opacity: 0.85; margin-top: 2px; }
+    .container { max-width: 1200px; margin: 0 auto; padding: 28px 20px; }
 
-    .container { max-width: 1100px; margin: 0 auto; padding: 28px 20px; }
-
-    /* Target Banner */
+    /* ---- Target Banner ---- */
     .target-banner {
       background: white;
       border-radius: 12px;
@@ -37,31 +34,27 @@
       margin-bottom: 24px;
       display: flex;
       align-items: center;
-      justify-content: space-between;
+      justify-content: space-around;
       flex-wrap: wrap;
-      gap: 16px;
+      gap: 20px;
       box-shadow: 0 1px 4px rgba(0,0,0,0.08);
     }
-    .target-label { font-size: 14px; color: #718096; }
-    .target-amount { font-size: 28px; font-weight: 800; color: #2b6cb0; }
-    .target-sub { font-size: 12px; color: #a0aec0; }
+    .banner-item { text-align: center; min-width: 150px; }
+    .banner-label { font-size: 13px; color: #718096; margin-bottom: 4px; }
+    .banner-value { font-size: 28px; font-weight: 800; }
+    .banner-sub { font-size: 12px; color: #a0aec0; margin-top: 3px; }
+    .banner-divider { width: 1px; height: 60px; background: #e2e8f0; }
+    @media (max-width: 600px) { .banner-divider { display: none; } }
 
-    /* Upload area */
-    .upload-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 20px;
-      margin-bottom: 28px;
-    }
-    @media (max-width: 640px) { .upload-grid { grid-template-columns: 1fr; } }
-
-    .upload-card {
+    /* ---- Card ---- */
+    .card {
       background: white;
       border-radius: 12px;
       padding: 24px;
       box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+      margin-bottom: 24px;
     }
-    .upload-card h2 {
+    .card-title {
       font-size: 16px;
       font-weight: 700;
       margin-bottom: 4px;
@@ -69,28 +62,33 @@
       align-items: center;
       gap: 8px;
     }
-    .badge-airbnb {
-      background: #FF5A5F;
-      color: white;
-      font-size: 11px;
-      padding: 2px 8px;
-      border-radius: 20px;
-      font-weight: 600;
-    }
-    .badge-booking {
-      background: #003580;
-      color: white;
-      font-size: 11px;
-      padding: 2px 8px;
-      border-radius: 20px;
-      font-weight: 600;
-    }
-    .upload-hint {
-      font-size: 12px;
-      color: #a0aec0;
-      margin-bottom: 14px;
-    }
+    .card-hint { font-size: 12px; color: #a0aec0; margin-bottom: 16px; }
 
+    /* ---- Upload ---- */
+    .upload-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+      margin-bottom: 24px;
+    }
+    @media (max-width: 640px) { .upload-grid { grid-template-columns: 1fr; } }
+    .upload-card {
+      background: white;
+      border-radius: 12px;
+      padding: 24px;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+    }
+    .upload-card h2 {
+      font-size: 15px;
+      font-weight: 700;
+      margin-bottom: 4px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .badge-airbnb { background:#FF5A5F; color:white; font-size:11px; padding:2px 8px; border-radius:20px; font-weight:600; }
+    .badge-booking { background:#003580; color:white; font-size:11px; padding:2px 8px; border-radius:20px; font-weight:600; }
+    .upload-hint { font-size:12px; color:#a0aec0; margin-bottom:14px; }
     .drop-zone {
       border: 2px dashed #cbd5e0;
       border-radius: 8px;
@@ -100,50 +98,76 @@
       transition: all 0.2s;
       background: #f7fafc;
     }
-    .drop-zone:hover, .drop-zone.dragover {
-      border-color: #4299e1;
-      background: #ebf8ff;
-    }
-    .drop-zone .dz-icon { font-size: 28px; margin-bottom: 8px; }
-    .drop-zone p { font-size: 13px; color: #718096; }
-    .drop-zone input[type=file] { display: none; }
+    .drop-zone:hover, .drop-zone.dragover { border-color:#4299e1; background:#ebf8ff; }
+    .drop-zone .dz-icon { font-size:28px; margin-bottom:8px; }
+    .drop-zone p { font-size:13px; color:#718096; }
+    .drop-zone input[type=file] { display:none; }
+    .file-status { margin-top:10px; font-size:13px; padding:8px 12px; border-radius:6px; display:none; }
+    .file-status.loaded { display:block; background:#f0fff4; color:#276749; border:1px solid #9ae6b4; }
+    .file-status.error  { display:block; background:#fff5f5; color:#c53030; border:1px solid #feb2b2; }
+    .btn-text { background:none; border:none; cursor:pointer; font-size:12px; color:#a0aec0; text-decoration:underline; margin-top:6px; }
+    .btn-text:hover { color:#718096; }
 
-    .file-status {
-      margin-top: 10px;
+    /* ---- Expense Table ---- */
+    .expense-scroll { overflow-x: auto; margin-bottom: 12px; }
+    .expense-table {
+      width: 100%;
+      border-collapse: collapse;
       font-size: 13px;
-      padding: 8px 12px;
-      border-radius: 6px;
-      display: none;
+      min-width: 980px;
     }
-    .file-status.loaded {
-      display: block;
-      background: #f0fff4;
-      color: #276749;
-      border: 1px solid #9ae6b4;
+    .expense-table thead th {
+      background: #edf2f7;
+      padding: 8px 10px;
+      text-align: center;
+      font-size: 11px;
+      font-weight: 700;
+      color: #718096;
+      white-space: nowrap;
     }
-    .file-status.error {
-      display: block;
-      background: #fff5f5;
-      color: #c53030;
-      border: 1px solid #feb2b2;
+    .expense-table thead th.cat-col { text-align:left; width:140px; }
+    .expense-table tbody td { padding:5px 6px; border-top:1px solid #f7fafc; }
+    .expense-table tbody td.cat-name { font-weight:600; font-size:13px; color:#4a5568; padding-left:10px; white-space:nowrap; }
+    .expense-table tbody td.row-total { text-align:right; font-weight:600; white-space:nowrap; padding-right:10px; background:#fafafa; }
+    .expense-table input[type=number] {
+      width: 100%;
+      min-width: 72px;
+      padding: 5px 6px;
+      border: 1px solid #e2e8f0;
+      border-radius: 4px;
+      font-size: 13px;
+      text-align: right;
     }
-
-    .btn-clear {
-      margin-top: 8px;
-      font-size: 12px;
-      color: #a0aec0;
-      background: none;
+    .expense-table input[type=number]:focus { outline:none; border-color:#4299e1; box-shadow:0 0 0 2px rgba(66,153,225,0.15); }
+    .expense-table tfoot td {
+      font-weight: 700;
+      background: #fff5f0;
+      border-top: 2px solid #fed7aa;
+      text-align: right;
+      padding: 8px 10px;
+      white-space: nowrap;
+    }
+    .expense-table tfoot td.cat-name { text-align:left; }
+    .btn-save {
+      padding: 8px 20px;
+      background: #4299e1;
+      color: white;
       border: none;
+      border-radius: 6px;
+      font-size: 13px;
+      font-weight: 600;
       cursor: pointer;
-      text-decoration: underline;
+      transition: background 0.2s;
     }
-    .btn-clear:hover { color: #718096; }
+    .btn-save:hover { background:#3182ce; }
+    .save-msg { font-size:12px; color:#276749; margin-left:10px; opacity:0; transition:opacity 0.3s; }
+    .save-msg.show { opacity:1; }
 
-    /* Year selector */
+    /* ---- Controls ---- */
     .controls {
       background: white;
       border-radius: 12px;
-      padding: 16px 24px;
+      padding: 14px 24px;
       margin-bottom: 24px;
       display: flex;
       align-items: center;
@@ -151,16 +175,10 @@
       flex-wrap: wrap;
       box-shadow: 0 1px 4px rgba(0,0,0,0.08);
     }
-    .controls label { font-size: 14px; font-weight: 600; }
-    .controls select {
-      padding: 6px 12px;
-      border: 1px solid #e2e8f0;
-      border-radius: 6px;
-      font-size: 14px;
-      background: white;
-    }
+    .controls label { font-size:14px; font-weight:600; }
+    .controls select { padding:6px 12px; border:1px solid #e2e8f0; border-radius:6px; font-size:14px; background:white; }
 
-    /* Monthly table */
+    /* ---- Monthly Summary Table ---- */
     .table-card {
       background: white;
       border-radius: 12px;
@@ -168,111 +186,74 @@
       overflow: hidden;
       margin-bottom: 28px;
     }
-    .table-card h2 {
-      font-size: 16px;
-      font-weight: 700;
-      padding: 18px 24px 0;
-    }
-
-    table {
+    .table-card-title { font-size:16px; font-weight:700; padding:18px 24px 12px; }
+    .table-scroll { overflow-x: auto; }
+    table.summary-table {
       width: 100%;
       border-collapse: collapse;
       font-size: 14px;
+      min-width: 820px;
     }
-    thead th {
+    table.summary-table thead th {
       background: #edf2f7;
-      padding: 10px 16px;
+      padding: 10px 14px;
       text-align: left;
-      font-size: 12px;
+      font-size: 11px;
       font-weight: 700;
       color: #718096;
       text-transform: uppercase;
-      letter-spacing: 0.05em;
+      letter-spacing: 0.04em;
+      white-space: nowrap;
     }
-    tbody td {
-      padding: 12px 16px;
-      border-top: 1px solid #f7fafc;
+    table.summary-table tbody td { padding:11px 14px; border-top:1px solid #f7fafc; white-space:nowrap; }
+    table.summary-table tbody tr:hover { background:#f7fafc; }
+    table.summary-table tfoot td {
+      padding:12px 14px;
+      font-weight:800;
+      background:#ebf8ff;
+      border-top:2px solid #bee3f8;
+      white-space:nowrap;
     }
-    tbody tr:hover { background: #f7fafc; }
-
-    .month-col { font-weight: 600; width: 90px; }
-    .amount-col { text-align: right; font-variant-numeric: tabular-nums; }
-    .nights-col { text-align: right; color: #718096; }
-
-    .total-row td {
-      font-weight: 800;
-      background: #ebf8ff;
-      border-top: 2px solid #bee3f8;
-    }
+    .col-right { text-align:right; font-variant-numeric:tabular-nums; }
+    .col-center { text-align:center; }
+    .text-muted { color:#a0aec0; font-size:13px; }
+    .text-red { color:#e53e3e; }
+    .text-green { color:#276749; font-weight:700; }
+    .text-orange { color:#c05621; font-weight:700; }
+    .fw { font-weight:700; }
 
     /* Progress bar */
-    .progress-wrap { padding: 4px 0; }
-    .progress-bar-bg {
-      background: #e2e8f0;
-      border-radius: 4px;
-      height: 8px;
-      width: 140px;
-      display: inline-block;
-      vertical-align: middle;
-      margin-right: 8px;
-    }
-    .progress-bar-fill {
-      height: 100%;
-      border-radius: 4px;
-      transition: width 0.3s;
-    }
-    .progress-label { font-size: 12px; color: #718096; }
+    .prog-wrap { display:flex; align-items:center; gap:6px; }
+    .prog-bg { background:#e2e8f0; border-radius:4px; height:8px; width:90px; flex-shrink:0; }
+    .prog-fill { height:100%; border-radius:4px; transition:width 0.3s; }
+    .prog-lbl { font-size:12px; color:#718096; }
 
-    .status-badge {
-      display: inline-block;
-      padding: 3px 10px;
-      border-radius: 20px;
-      font-size: 12px;
-      font-weight: 700;
-    }
-    .status-ok { background: #f0fff4; color: #276749; }
-    .status-ng { background: #fff5f5; color: #c53030; }
-    .status-near { background: #fffbeb; color: #975a16; }
+    /* Status badge */
+    .badge { display:inline-block; padding:3px 10px; border-radius:20px; font-size:11px; font-weight:700; }
+    .badge-ok   { background:#f0fff4; color:#276749; }
+    .badge-near { background:#fffbeb; color:#975a16; }
+    .badge-ng   { background:#fff5f5; color:#c53030; }
 
-    /* Reservation detail table */
-    .detail-section { margin-bottom: 28px; }
-    .detail-section h2 {
-      font-size: 15px;
-      font-weight: 700;
-      margin-bottom: 12px;
-      color: #4a5568;
-    }
-    .detail-table-wrap {
-      background: white;
-      border-radius: 12px;
-      box-shadow: 0 1px 4px rgba(0,0,0,0.08);
-      overflow-x: auto;
-    }
-    .detail-table-wrap table { min-width: 600px; }
+    /* Source dot */
+    .src-dot { display:inline-block; width:8px; height:8px; border-radius:50%; margin-right:5px; vertical-align:middle; }
+    .dot-a { background:#FF5A5F; }
+    .dot-b { background:#003580; }
 
-    .source-dot {
-      display: inline-block;
-      width: 8px; height: 8px;
-      border-radius: 50%;
-      margin-right: 6px;
-      vertical-align: middle;
-    }
-    .dot-airbnb { background: #FF5A5F; }
-    .dot-booking { background: #003580; }
+    /* Reservation table */
+    .rsv-wrap { background:white; border-radius:12px; box-shadow:0 1px 4px rgba(0,0,0,0.08); overflow-x:auto; margin-bottom:28px; }
+    table.rsv-table { width:100%; border-collapse:collapse; font-size:13px; min-width:640px; }
+    table.rsv-table thead th { background:#edf2f7; padding:9px 14px; text-align:left; font-size:11px; font-weight:700; color:#718096; text-transform:uppercase; letter-spacing:0.04em; }
+    table.rsv-table tbody td { padding:10px 14px; border-top:1px solid #f7fafc; }
+    table.rsv-table tbody tr:hover { background:#f7fafc; }
 
     /* Empty state */
-    .empty-state {
-      text-align: center;
-      padding: 48px 24px;
-      color: #a0aec0;
-    }
-    .empty-state .emoji { font-size: 40px; margin-bottom: 12px; }
-    .empty-state p { font-size: 14px; }
+    .empty { text-align:center; padding:48px 24px; color:#a0aec0; }
+    .empty .em { font-size:40px; margin-bottom:12px; }
+    .empty p { font-size:14px; }
 
-    /* Responsive number */
-    @media (max-width: 480px) {
-      .target-amount { font-size: 22px; }
-      thead th, tbody td { padding: 8px 10px; }
+    @media (max-width:480px) {
+      .banner-value { font-size:22px; }
+      header h1 { font-size:18px; }
     }
   </style>
 </head>
@@ -281,436 +262,542 @@
 <header>
   <div class="icon">🏠</div>
   <div>
-    <h1>民泊収益管理表</h1>
-    <p>宮崎市 ・ 最大8名1棟貸し ・ Airbnb / Booking.com</p>
+    <h1>民泊収支管理表</h1>
+    <p>宮崎市 ・ Airbnb / Booking.com ・ 月間売上目標 ¥400,000</p>
   </div>
 </header>
 
 <div class="container">
 
-  <!-- Target -->
+  <!-- ===== BANNER ===== -->
   <div class="target-banner">
-    <div>
-      <div class="target-label">月間売上目標</div>
-      <div class="target-amount">¥300,000</div>
+    <div class="banner-item">
+      <div class="banner-label">月間売上目標</div>
+      <div class="banner-value" style="color:#2b6cb0">¥400,000</div>
+      <div class="banner-sub">毎月この金額以上を目指します</div>
     </div>
-    <div style="text-align:right">
-      <div class="target-label">現在選択中の年</div>
-      <div id="selectedYearDisplay" style="font-size:20px;font-weight:700;color:#4a5568;">—</div>
+    <div class="banner-divider"></div>
+    <div class="banner-item">
+      <div class="banner-label" id="curMonthLabel">今月の売上</div>
+      <div class="banner-value" id="curRevenue" style="color:#4a5568">—</div>
+      <div class="banner-sub" id="curStatus">CSVをアップロードしてください</div>
+    </div>
+    <div class="banner-divider"></div>
+    <div class="banner-item">
+      <div class="banner-label">今月の純利益</div>
+      <div class="banner-value" id="curProfit" style="color:#4a5568">—</div>
+      <div class="banner-sub" id="curProfitSub">売上 − 経費</div>
+    </div>
+    <div class="banner-divider"></div>
+    <div class="banner-item">
+      <div class="banner-label">表示年度</div>
+      <div class="banner-value" id="yearDisplay" style="font-size:22px;color:#4a5568">—</div>
+      <div class="banner-sub">選択中の年</div>
     </div>
   </div>
 
-  <!-- Upload -->
+  <!-- ===== CSV UPLOAD ===== -->
   <div class="upload-grid">
-
-    <!-- Airbnb -->
     <div class="upload-card">
-      <h2><span class="badge-airbnb">Airbnb</span> 予約データCSV</h2>
+      <h2><span class="badge-airbnb">Airbnb</span> 予約データ CSV</h2>
       <p class="upload-hint">Airbnb管理画面 → 予約 → 予約一覧 → CSVエクスポート</p>
-      <div class="drop-zone" id="dzAirbnb">
-        <input type="file" id="fileAirbnb" accept=".csv">
+      <div class="drop-zone" id="dzA">
+        <input type="file" id="fileA" accept=".csv">
         <div class="dz-icon">📄</div>
         <p>クリックまたはCSVをここにドロップ</p>
       </div>
-      <div class="file-status" id="statusAirbnb"></div>
-      <button class="btn-clear" id="clearAirbnb" style="display:none" onclick="clearData('airbnb')">クリア</button>
+      <div class="file-status" id="stA"></div>
+      <button class="btn-text" id="clrA" style="display:none" onclick="clearSrc('a')">クリア</button>
     </div>
-
-    <!-- Booking.com -->
     <div class="upload-card">
-      <h2><span class="badge-booking">Booking.com</span> 予約データCSV</h2>
-      <p class="upload-hint">Booking.com エクストラネット → レポート → 予約レポート → エクスポート</p>
-      <div class="drop-zone" id="dzBooking">
-        <input type="file" id="fileBooking" accept=".csv">
+      <h2><span class="badge-booking">Booking.com</span> 予約データ CSV</h2>
+      <p class="upload-hint">エクストラネット → レポート → 予約レポート → エクスポート</p>
+      <div class="drop-zone" id="dzB">
+        <input type="file" id="fileB" accept=".csv">
         <div class="dz-icon">📄</div>
         <p>クリックまたはCSVをここにドロップ</p>
       </div>
-      <div class="file-status" id="statusBooking"></div>
-      <button class="btn-clear" id="clearBooking" style="display:none" onclick="clearData('booking')">クリア</button>
+      <div class="file-status" id="stB"></div>
+      <button class="btn-text" id="clrB" style="display:none" onclick="clearSrc('b')">クリア</button>
     </div>
-
   </div>
 
-  <!-- Year selector -->
+  <!-- ===== EXPENSE INPUT ===== -->
+  <div class="card">
+    <div class="card-title">💴 月別経費入力</div>
+    <p class="card-hint">各月の経費を入力して「保存」を押してください。月別サマリーに純利益が表示されます。※ データはこのブラウザに自動保存されます。</p>
+    <div class="expense-scroll">
+      <table class="expense-table">
+        <thead>
+          <tr>
+            <th class="cat-col">経費カテゴリ</th>
+            <th>1月</th><th>2月</th><th>3月</th><th>4月</th>
+            <th>5月</th><th>6月</th><th>7月</th><th>8月</th>
+            <th>9月</th><th>10月</th><th>11月</th><th>12月</th>
+            <th>年間合計</th>
+          </tr>
+        </thead>
+        <tbody id="expBody"></tbody>
+        <tfoot id="expFoot"></tfoot>
+      </table>
+    </div>
+    <button class="btn-save" onclick="saveExpenses()">💾 保存する</button>
+    <span class="save-msg" id="saveMsg">✓ 保存しました</span>
+  </div>
+
+  <!-- ===== YEAR SELECTOR ===== -->
   <div class="controls">
-    <label for="yearSelect">表示年度：</label>
-    <select id="yearSelect" onchange="renderAll()">
-    </select>
-    <span style="font-size:13px;color:#a0aec0;" id="totalReservations"></span>
+    <label for="yrSel">表示年度：</label>
+    <select id="yrSel" onchange="renderAll()"></select>
+    <span class="text-muted" id="rsvCount"></span>
   </div>
 
-  <!-- Monthly summary -->
-  <div class="table-card" id="monthlySummaryCard">
-    <h2 style="padding:18px 24px 12px">月別売上サマリー</h2>
-    <div id="monthlySummary">
-      <div class="empty-state">
-        <div class="emoji">📊</div>
-        <p>CSVをアップロードすると月別集計が表示されます</p>
+  <!-- ===== MONTHLY SUMMARY ===== -->
+  <div class="table-card">
+    <div class="table-card-title">月別収支サマリー</div>
+    <div class="table-scroll">
+      <div id="summary">
+        <div class="empty"><div class="em">📊</div><p>CSVをアップロードすると月別集計が表示されます</p></div>
       </div>
     </div>
   </div>
 
-  <!-- Reservation list -->
-  <div class="detail-section">
-    <h2>予約一覧</h2>
-    <div class="detail-table-wrap">
-      <div id="reservationList">
-        <div class="empty-state">
-          <div class="emoji">📋</div>
-          <p>CSVをアップロードすると予約一覧が表示されます</p>
-        </div>
-      </div>
+  <!-- ===== RESERVATION LIST ===== -->
+  <div style="font-size:15px;font-weight:700;margin-bottom:12px;color:#4a5568;">予約一覧</div>
+  <div class="rsv-wrap">
+    <div id="rsvList">
+      <div class="empty"><div class="em">📋</div><p>CSVをアップロードすると予約一覧が表示されます</p></div>
     </div>
   </div>
 
-</div>
+</div><!-- /container -->
 
 <script>
-  const TARGET = 300000;
-  let airbnbData = [];
-  let bookingData = [];
+/* ===================================================
+   CONFIG
+=================================================== */
+const TARGET = 400000;
 
-  // ---- Drag & Drop / File input ----
-  function setupDropZone(dzId, inputId, source) {
-    const dz = document.getElementById(dzId);
-    const input = document.getElementById(inputId);
+const EXP_CATS = [
+  { key:'cleaning',    label:'清掃費' },
+  { key:'amenity',     label:'アメニティ・消耗品' },
+  { key:'utility',     label:'水道光熱費' },
+  { key:'commission',  label:'プラットフォーム手数料' },
+  { key:'repair',      label:'修繕・備品費' },
+  { key:'other',       label:'その他経費' },
+];
 
-    dz.addEventListener('click', () => input.click());
-    input.addEventListener('change', e => {
-      if (e.target.files[0]) readCSV(e.target.files[0], source);
+/* ===================================================
+   STATE
+=================================================== */
+let dataA = [];   // Airbnb reservations
+let dataB = [];   // Booking.com reservations
+let expenses = {};// expenses[year][catKey][month0]
+
+/* ===================================================
+   LOCAL STORAGE
+=================================================== */
+function loadExpenses() {
+  try {
+    const raw = localStorage.getItem('minpaku_exp_v1');
+    if (raw) expenses = JSON.parse(raw);
+  } catch(e) { expenses = {}; }
+}
+
+function persistExpenses() {
+  try { localStorage.setItem('minpaku_exp_v1', JSON.stringify(expenses)); } catch(e) {}
+}
+
+function saveExpenses() {
+  const yr = selYear();
+  if (!expenses[yr]) expenses[yr] = {};
+  EXP_CATS.forEach(c => {
+    expenses[yr][c.key] = Array.from({length:12}, (_,m) => {
+      const el = document.getElementById(`ei_${c.key}_${m}`);
+      return el ? (parseFloat(el.value) || 0) : 0;
     });
-    dz.addEventListener('dragover', e => { e.preventDefault(); dz.classList.add('dragover'); });
-    dz.addEventListener('dragleave', () => dz.classList.remove('dragover'));
-    dz.addEventListener('drop', e => {
-      e.preventDefault();
-      dz.classList.remove('dragover');
-      if (e.dataTransfer.files[0]) readCSV(e.dataTransfer.files[0], source);
-    });
-  }
+  });
+  persistExpenses();
+  const msg = document.getElementById('saveMsg');
+  msg.classList.add('show');
+  setTimeout(() => msg.classList.remove('show'), 2000);
+  renderSummary(filtered(), selYear());
+  updateBanner(filtered(), selYear());
+}
 
-  setupDropZone('dzAirbnb', 'fileAirbnb', 'airbnb');
-  setupDropZone('dzBooking', 'fileBooking', 'booking');
+function getExp(yr, m0, key) {
+  return expenses?.[yr]?.[key]?.[m0] || 0;
+}
+function totalExpMonth(yr, m0) {
+  return EXP_CATS.reduce((s,c) => s + getExp(yr, m0, c.key), 0);
+}
 
-  function clearData(source) {
-    if (source === 'airbnb') {
-      airbnbData = [];
-      document.getElementById('statusAirbnb').className = 'file-status';
-      document.getElementById('statusAirbnb').textContent = '';
-      document.getElementById('clearAirbnb').style.display = 'none';
-      document.getElementById('fileAirbnb').value = '';
-    } else {
-      bookingData = [];
-      document.getElementById('statusBooking').className = 'file-status';
-      document.getElementById('statusBooking').textContent = '';
-      document.getElementById('clearBooking').style.display = 'none';
-      document.getElementById('fileBooking').value = '';
+/* ===================================================
+   EXPENSE TABLE RENDER
+=================================================== */
+function renderExpTable(yr) {
+  let bodyHtml = '';
+  EXP_CATS.forEach(c => {
+    let rowSum = 0;
+    bodyHtml += `<tr><td class="cat-name">${c.label}</td>`;
+    for (let m = 0; m < 12; m++) {
+      const v = getExp(yr, m, c.key);
+      rowSum += v;
+      bodyHtml += `<td><input type="number" id="ei_${c.key}_${m}" value="${v||''}" placeholder="0" min="0"
+        oninput="liveUpdateExp(${yr})" onchange="liveUpdateExp(${yr})"></td>`;
     }
-    renderAll();
-  }
+    bodyHtml += `<td class="row-total" id="er_${c.key}">${rowSum > 0 ? fmt(rowSum) : '—'}</td></tr>`;
+  });
+  document.getElementById('expBody').innerHTML = bodyHtml;
 
-  // ---- CSV Parser ----
-  function parseCSVLine(line) {
-    const result = [];
-    let cur = '', inQ = false;
-    for (let i = 0; i < line.length; i++) {
-      const c = line[i];
-      if (c === '"') {
-        if (inQ && line[i+1] === '"') { cur += '"'; i++; }
-        else inQ = !inQ;
-      } else if (c === ',' && !inQ) {
-        result.push(cur.trim()); cur = '';
-      } else cur += c;
+  let footHtml = `<tr><td class="cat-name">合計経費</td>`;
+  let yearTotal = 0;
+  for (let m = 0; m < 12; m++) {
+    const t = totalExpMonth(yr, m);
+    yearTotal += t;
+    footHtml += `<td id="ec_${m}" style="text-align:right">${t > 0 ? fmt(t) : '—'}</td>`;
+  }
+  footHtml += `<td id="ec_yr">${yearTotal > 0 ? fmt(yearTotal) : '—'}</td></tr>`;
+  document.getElementById('expFoot').innerHTML = footHtml;
+}
+
+function liveUpdateExp(yr) {
+  EXP_CATS.forEach(c => {
+    let rowSum = 0;
+    for (let m = 0; m < 12; m++) {
+      const el = document.getElementById(`ei_${c.key}_${m}`);
+      rowSum += parseFloat(el?.value) || 0;
     }
-    result.push(cur.trim());
-    return result;
+    const re = document.getElementById(`er_${c.key}`);
+    if (re) re.textContent = rowSum > 0 ? fmt(rowSum) : '—';
+  });
+  let yrTotal = 0;
+  for (let m = 0; m < 12; m++) {
+    const colTotal = EXP_CATS.reduce((s,c) => {
+      return s + (parseFloat(document.getElementById(`ei_${c.key}_${m}`)?.value) || 0);
+    }, 0);
+    yrTotal += colTotal;
+    const ce = document.getElementById(`ec_${m}`);
+    if (ce) ce.textContent = colTotal > 0 ? fmt(colTotal) : '—';
   }
+  const ye = document.getElementById('ec_yr');
+  if (ye) ye.textContent = yrTotal > 0 ? fmt(yrTotal) : '—';
+}
 
-  function parseCSV(text) {
-    const lines = text.split(/\r?\n/).filter(l => l.trim());
-    const headers = parseCSVLine(lines[0]).map(h => h.replace(/^﻿/, '').replace(/"/g, ''));
-    const rows = [];
-    for (let i = 1; i < lines.length; i++) {
-      const vals = parseCSVLine(lines[i]);
-      if (vals.every(v => !v)) continue;
-      const obj = {};
-      headers.forEach((h, idx) => { obj[h] = vals[idx] || ''; });
-      rows.push(obj);
-    }
-    return { headers, rows };
-  }
+/* ===================================================
+   DROP ZONES
+=================================================== */
+function setupDZ(dzId, inputId, src) {
+  const dz = document.getElementById(dzId);
+  const inp = document.getElementById(inputId);
+  dz.addEventListener('click', () => inp.click());
+  inp.addEventListener('change', e => { if (e.target.files[0]) readCSV(e.target.files[0], src); });
+  dz.addEventListener('dragover', e => { e.preventDefault(); dz.classList.add('dragover'); });
+  dz.addEventListener('dragleave', () => dz.classList.remove('dragover'));
+  dz.addEventListener('drop', e => {
+    e.preventDefault(); dz.classList.remove('dragover');
+    if (e.dataTransfer.files[0]) readCSV(e.dataTransfer.files[0], src);
+  });
+}
+setupDZ('dzA','fileA','a');
+setupDZ('dzB','fileB','b');
 
-  // ---- Amount cleanup ----
-  function toNumber(str) {
-    if (!str) return 0;
-    const n = parseFloat(str.replace(/[¥$€,\s円]/g, '').replace(/[^\d.\-]/g, ''));
-    return isNaN(n) ? 0 : n;
-  }
-
-  // ---- Date helpers ----
-  function parseDate(str) {
-    if (!str) return null;
-    // Try YYYY-MM-DD, YYYY/MM/DD, DD/MM/YYYY, MM/DD/YYYY
-    let m;
-    m = str.match(/^(\d{4})[-\/](\d{1,2})[-\/](\d{1,2})/);
-    if (m) return new Date(+m[1], +m[2]-1, +m[3]);
-    m = str.match(/^(\d{1,2})[-\/](\d{1,2})[-\/](\d{4})/);
-    if (m) {
-      // Heuristic: if first number > 12 it's DD/MM/YYYY
-      if (+m[1] > 12) return new Date(+m[3], +m[2]-1, +m[1]);
-      return new Date(+m[3], +m[1]-1, +m[2]);
-    }
-    return new Date(str);
-  }
-
-  function fmtDate(d) {
-    if (!d || isNaN(d)) return '—';
-    return `${d.getFullYear()}/${String(d.getMonth()+1).padStart(2,'0')}/${String(d.getDate()).padStart(2,'0')}`;
-  }
-
-  // ---- Airbnb CSV → normalized ----
-  // Airbnb CSV columns (JP): 確認コード, ステータス, ゲスト, 連絡先, 人数, 子供, 開始日, 終了日, 泊数, リスティング, 支払い金額, サービス料, 宿泊料, 清掃費, etc.
-  // Airbnb CSV columns (EN): Confirmation Code, Status, Guest, Contact, # of Guests, Adults, Children, Infants, Pets, Start Date, End Date, # of Nights, Listing, Earnings, ...
-  function normalizeAirbnb(rows) {
-    return rows.map(r => {
-      // Try Japanese and English key names
-      const checkin = parseDate(r['開始日'] || r['Start Date'] || r['チェックイン'] || r['check_in'] || r['Arrival Date'] || '');
-      const checkout = parseDate(r['終了日'] || r['End Date'] || r['チェックアウト'] || r['check_out'] || r['Departure Date'] || '');
-      const nights = parseInt(r['泊数'] || r['# of Nights'] || r['Nights'] || r['nights'] || '0') || 0;
-      const rawAmount = r['支払い金額'] || r['Earnings'] || r['Payout'] || r['Amount'] || r['合計'] || r['Total'] || '0';
-      const amount = toNumber(rawAmount);
-      const status = r['ステータス'] || r['Status'] || r['status'] || '';
-      const guest = r['ゲスト'] || r['Guest'] || r['guest'] || r['Guest Name'] || '—';
-      const code = r['確認コード'] || r['Confirmation Code'] || r['confirmation_code'] || '—';
-      return { source: 'airbnb', code, guest, checkin, checkout, nights, amount, status, rawAmount };
-    }).filter(r => r.checkin && !isNaN(r.checkin));
-  }
-
-  // ---- Booking.com CSV → normalized ----
-  // Booking.com (JP): 予約番号, チェックイン, チェックアウト, 宿泊数, ゲスト名, 金額, コミッション, etc.
-  // Booking.com (EN): Reservation number, Check-in, Check-out, Rooms, Persons, Booked, Status, Room type, Amount, Commission, ...
-  function normalizeBooking(rows) {
-    return rows.map(r => {
-      const checkin = parseDate(r['チェックイン'] || r['Check-in'] || r['check_in'] || r['Arrival'] || r['入室'] || '');
-      const checkout = parseDate(r['チェックアウト'] || r['Check-out'] || r['check_out'] || r['Departure'] || r['退室'] || '');
-      let nights = 0;
-      if (checkin && checkout && !isNaN(checkin) && !isNaN(checkout)) {
-        nights = Math.round((checkout - checkin) / 86400000);
-      }
-      nights = parseInt(r['宿泊数'] || r['Nights'] || r['nights'] || nights) || nights;
-      const rawAmount = r['金額'] || r['Amount'] || r['Price'] || r['Gross revenue'] || r['合計'] || r['Total price'] || '0';
-      const amount = toNumber(rawAmount);
-      const status = r['ステータス'] || r['Status'] || r['Reservation status'] || '';
-      const guest = r['ゲスト名'] || r['Guest name'] || r['Guest'] || r['Booker name'] || '—';
-      const code = r['予約番号'] || r['Reservation number'] || r['Booking number'] || '—';
-      return { source: 'booking', code, guest, checkin, checkout, nights, amount, status, rawAmount };
-    }).filter(r => r.checkin && !isNaN(r.checkin));
-  }
-
-  // ---- Read file ----
-  function readCSV(file, source) {
-    const reader = new FileReader();
-    reader.onload = e => {
-      try {
-        const { rows } = parseCSV(e.target.result);
-        let normalized;
-        if (source === 'airbnb') {
-          normalized = normalizeAirbnb(rows);
-          airbnbData = normalized;
-          showStatus('statusAirbnb', 'clearAirbnb', normalized.length, file.name);
-        } else {
-          normalized = normalizeBooking(rows);
-          bookingData = normalized;
-          showStatus('statusBooking', 'clearBooking', normalized.length, file.name);
-        }
-        renderAll();
-      } catch(err) {
-        showError(source === 'airbnb' ? 'statusAirbnb' : 'statusBooking', err.message);
-      }
-    };
-    reader.readAsText(file, 'UTF-8');
-  }
-
-  function showStatus(statusId, clearId, count, filename) {
-    const el = document.getElementById(statusId);
-    el.className = 'file-status loaded';
-    el.textContent = `✓ ${filename} — ${count}件の予約を読み込みました`;
-    document.getElementById(clearId).style.display = 'inline';
-  }
-
-  function showError(statusId, msg) {
-    const el = document.getElementById(statusId);
-    el.className = 'file-status error';
-    el.textContent = `⚠ 読み込みエラー: ${msg}`;
-  }
-
-  // ---- Render ----
-  function allReservations() {
-    return [...airbnbData, ...bookingData];
-  }
-
-  function renderAll() {
-    const all = allReservations();
-    const years = [...new Set(all.map(r => r.checkin.getFullYear()))].sort((a,b) => b-a);
-
-    // Populate year select
-    const sel = document.getElementById('yearSelect');
-    const prevYear = parseInt(sel.value);
-    sel.innerHTML = '';
-    if (years.length === 0) {
-      const opt = document.createElement('option');
-      opt.value = new Date().getFullYear();
-      opt.textContent = new Date().getFullYear() + '年';
-      sel.appendChild(opt);
-    } else {
-      years.forEach(y => {
-        const opt = document.createElement('option');
-        opt.value = y;
-        opt.textContent = y + '年';
-        if (y === prevYear) opt.selected = true;
-        sel.appendChild(opt);
-      });
-    }
-
-    const year = parseInt(sel.value);
-    document.getElementById('selectedYearDisplay').textContent = year + '年';
-
-    const filtered = all.filter(r => r.checkin.getFullYear() === year);
-    document.getElementById('totalReservations').textContent =
-      `合計 ${filtered.length} 件（Airbnb: ${filtered.filter(r=>r.source==='airbnb').length}件 / Booking.com: ${filtered.filter(r=>r.source==='booking').length}件）`;
-
-    renderMonthly(filtered, year);
-    renderReservations(filtered);
-  }
-
-  function renderMonthly(reservations, year) {
-    const months = Array.from({length:12}, (_,i) => ({
-      month: i+1,
-      airbnb: 0, airbnbNights: 0, airbnbCount: 0,
-      booking: 0, bookingNights: 0, bookingCount: 0
-    }));
-
-    reservations.forEach(r => {
-      const m = r.checkin.getMonth(); // 0-indexed
-      if (r.source === 'airbnb') {
-        months[m].airbnb += r.amount;
-        months[m].airbnbNights += r.nights;
-        months[m].airbnbCount++;
-      } else {
-        months[m].booking += r.amount;
-        months[m].bookingNights += r.nights;
-        months[m].bookingCount++;
-      }
-    });
-
-    const totalA = months.reduce((s,m)=>s+m.airbnb,0);
-    const totalB = months.reduce((s,m)=>s+m.booking,0);
-    const totalN = months.reduce((s,m)=>s+m.airbnbNights+m.bookingNights,0);
-
-    let html = `<table>
-      <thead><tr>
-        <th>月</th>
-        <th style="text-align:right"><span style="color:#FF5A5F">●</span> Airbnb</th>
-        <th style="text-align:right"><span style="color:#003580">●</span> Booking.com</th>
-        <th style="text-align:right">合計売上</th>
-        <th style="text-align:right">泊数</th>
-        <th>目標達成</th>
-        <th>進捗</th>
-      </tr></thead>
-      <tbody>`;
-
-    months.forEach(m => {
-      const total = m.airbnb + m.booking;
-      const nights = m.airbnbNights + m.bookingNights;
-      const pct = Math.min(100, Math.round(total / TARGET * 100));
-      const barColor = total >= TARGET ? '#48bb78' : total >= TARGET*0.8 ? '#ed8936' : '#fc8181';
-      const badge = total >= TARGET
-        ? `<span class="status-badge status-ok">✓ 達成</span>`
-        : total > 0
-          ? `<span class="status-badge status-ng">✗ 未達</span>`
-          : `<span style="color:#cbd5e0;font-size:12px">—</span>`;
-
-      html += `<tr>
-        <td class="month-col">${m.month}月</td>
-        <td class="amount-col">${m.airbnbCount > 0 ? fmt(m.airbnb) : '—'}</td>
-        <td class="amount-col">${m.bookingCount > 0 ? fmt(m.booking) : '—'}</td>
-        <td class="amount-col" style="font-weight:700">${total > 0 ? fmt(total) : '—'}</td>
-        <td class="nights-col">${nights > 0 ? nights+'泊' : '—'}</td>
-        <td style="text-align:center">${badge}</td>
-        <td>
-          ${total > 0 ? `<div class="progress-wrap">
-            <div class="progress-bar-bg">
-              <div class="progress-bar-fill" style="width:${pct}%;background:${barColor}"></div>
-            </div>
-            <span class="progress-label">${pct}%</span>
-          </div>` : ''}
-        </td>
-      </tr>`;
-    });
-
-    html += `</tbody>
-      <tfoot><tr class="total-row">
-        <td class="month-col">年間合計</td>
-        <td class="amount-col">${fmt(totalA)}</td>
-        <td class="amount-col">${fmt(totalB)}</td>
-        <td class="amount-col">${fmt(totalA+totalB)}</td>
-        <td class="nights-col">${totalN}泊</td>
-        <td colspan="2" style="font-size:13px;color:#4a5568;">目標年間 ${fmt(TARGET*12)}</td>
-      </tr></tfoot>
-    </table>`;
-
-    document.getElementById('monthlySummary').innerHTML = reservations.length === 0
-      ? `<div class="empty-state"><div class="emoji">📊</div><p>CSVをアップロードすると月別集計が表示されます</p></div>`
-      : html;
-  }
-
-  function renderReservations(reservations) {
-    if (reservations.length === 0) {
-      document.getElementById('reservationList').innerHTML =
-        `<div class="empty-state"><div class="emoji">📋</div><p>CSVをアップロードすると予約一覧が表示されます</p></div>`;
-      return;
-    }
-
-    const sorted = [...reservations].sort((a,b) => b.checkin - a.checkin);
-
-    let html = `<table>
-      <thead><tr>
-        <th>サイト</th>
-        <th>確認番号</th>
-        <th>ゲスト名</th>
-        <th>チェックイン</th>
-        <th>チェックアウト</th>
-        <th style="text-align:right">泊数</th>
-        <th style="text-align:right">売上金額</th>
-        <th>ステータス</th>
-      </tr></thead>
-      <tbody>`;
-
-    sorted.forEach(r => {
-      const dot = r.source === 'airbnb'
-        ? `<span class="source-dot dot-airbnb"></span><span style="color:#FF5A5F;font-weight:600">Airbnb</span>`
-        : `<span class="source-dot dot-booking"></span><span style="color:#003580;font-weight:600">Booking</span>`;
-      html += `<tr>
-        <td>${dot}</td>
-        <td style="font-size:12px;color:#718096">${r.code}</td>
-        <td>${r.guest}</td>
-        <td>${fmtDate(r.checkin)}</td>
-        <td>${fmtDate(r.checkout)}</td>
-        <td class="nights-col">${r.nights > 0 ? r.nights+'泊' : '—'}</td>
-        <td class="amount-col" style="font-weight:600">${r.amount > 0 ? fmt(r.amount) : r.rawAmount || '—'}</td>
-        <td style="font-size:12px;color:#718096">${r.status}</td>
-      </tr>`;
-    });
-
-    html += `</tbody></table>`;
-    document.getElementById('reservationList').innerHTML = html;
-  }
-
-  function fmt(n) {
-    return '¥' + Math.round(n).toLocaleString('ja-JP');
-  }
-
-  // Init
+function clearSrc(src) {
+  if (src==='a') { dataA=[]; setStatus('stA','',''); document.getElementById('clrA').style.display='none'; document.getElementById('fileA').value=''; }
+  else           { dataB=[]; setStatus('stB','',''); document.getElementById('clrB').style.display='none'; document.getElementById('fileB').value=''; }
   renderAll();
+}
+
+/* ===================================================
+   CSV PARSING
+=================================================== */
+function parseCSVLine(line) {
+  const res=[]; let cur='', inQ=false;
+  for (let i=0; i<line.length; i++) {
+    const c=line[i];
+    if (c==='"') { if (inQ && line[i+1]==='"') { cur+='"'; i++; } else inQ=!inQ; }
+    else if (c===',' && !inQ) { res.push(cur.trim()); cur=''; }
+    else cur+=c;
+  }
+  res.push(cur.trim()); return res;
+}
+
+function parseCSV(text) {
+  const lines = text.split(/\r?\n/).filter(l=>l.trim());
+  const headers = parseCSVLine(lines[0]).map(h=>h.replace(/^﻿/,'').replace(/"/g,''));
+  const rows = [];
+  for (let i=1; i<lines.length; i++) {
+    const vals = parseCSVLine(lines[i]);
+    if (vals.every(v=>!v)) continue;
+    const obj={}; headers.forEach((h,idx)=>{ obj[h]=vals[idx]||''; });
+    rows.push(obj);
+  }
+  return rows;
+}
+
+function toNum(s) {
+  if (!s) return 0;
+  const n = parseFloat(String(s).replace(/[¥$€,\s円]/g,'').replace(/[^\d.\-]/g,''));
+  return isNaN(n)?0:n;
+}
+
+function parseDate(s) {
+  if (!s) return null;
+  let m;
+  m = String(s).match(/^(\d{4})[-\/](\d{1,2})[-\/](\d{1,2})/);
+  if (m) return new Date(+m[1],+m[2]-1,+m[3]);
+  m = String(s).match(/^(\d{1,2})[-\/](\d{1,2})[-\/](\d{4})/);
+  if (m) return +m[1]>12 ? new Date(+m[3],+m[2]-1,+m[1]) : new Date(+m[3],+m[1]-1,+m[2]);
+  const d=new Date(s); return isNaN(d)?null:d;
+}
+
+function fmtD(d) {
+  if (!d||isNaN(d)) return '—';
+  return `${d.getFullYear()}/${String(d.getMonth()+1).padStart(2,'0')}/${String(d.getDate()).padStart(2,'0')}`;
+}
+
+function normalizeA(rows) {
+  return rows.map(r => {
+    const ci = parseDate(r['開始日']||r['Start Date']||r['チェックイン']||r['check_in']||r['Arrival Date']||'');
+    const co = parseDate(r['終了日']||r['End Date']||r['チェックアウト']||r['check_out']||r['Departure Date']||'');
+    const nights = parseInt(r['泊数']||r['# of Nights']||r['Nights']||r['nights']||'0')||0;
+    const raw = r['支払い金額']||r['Earnings']||r['Payout']||r['Amount']||r['合計']||r['Total']||'0';
+    return {
+      src:'a', code:r['確認コード']||r['Confirmation Code']||r['confirmation_code']||'—',
+      guest:r['ゲスト']||r['Guest']||r['Guest Name']||'—',
+      ci, co, nights, amount:toNum(raw), status:r['ステータス']||r['Status']||'', raw
+    };
+  }).filter(r=>r.ci&&!isNaN(r.ci));
+}
+
+function normalizeB(rows) {
+  return rows.map(r => {
+    const ci = parseDate(r['チェックイン']||r['Check-in']||r['check_in']||r['Arrival']||r['入室']||'');
+    const co = parseDate(r['チェックアウト']||r['Check-out']||r['check_out']||r['Departure']||r['退室']||'');
+    let nights = 0;
+    if (ci&&co&&!isNaN(ci)&&!isNaN(co)) nights=Math.round((co-ci)/86400000);
+    nights = parseInt(r['宿泊数']||r['Nights']||r['nights']||nights)||nights;
+    const raw = r['金額']||r['Amount']||r['Price']||r['Gross revenue']||r['合計']||r['Total price']||'0';
+    return {
+      src:'b', code:r['予約番号']||r['Reservation number']||r['Booking number']||'—',
+      guest:r['ゲスト名']||r['Guest name']||r['Guest']||r['Booker name']||'—',
+      ci, co, nights, amount:toNum(raw), status:r['ステータス']||r['Status']||r['Reservation status']||'', raw
+    };
+  }).filter(r=>r.ci&&!isNaN(r.ci));
+}
+
+function readCSV(file, src) {
+  const reader = new FileReader();
+  reader.onload = e => {
+    try {
+      const rows = parseCSV(e.target.result);
+      if (src==='a') { dataA=normalizeA(rows); setStatus('stA','loaded',`✓ ${file.name} — ${dataA.length}件の予約を読み込みました`); document.getElementById('clrA').style.display='inline'; }
+      else           { dataB=normalizeB(rows); setStatus('stB','loaded',`✓ ${file.name} — ${dataB.length}件の予約を読み込みました`); document.getElementById('clrB').style.display='inline'; }
+      renderAll();
+    } catch(err) {
+      setStatus(src==='a'?'stA':'stB', 'error', `⚠ 読み込みエラー: ${err.message}`);
+    }
+  };
+  reader.readAsText(file, 'UTF-8');
+}
+
+function setStatus(id, cls, txt) {
+  const el=document.getElementById(id);
+  el.className='file-status'+(cls?' '+cls:'');
+  el.textContent=txt;
+  if (!cls) el.style.display='none';
+}
+
+/* ===================================================
+   HELPERS
+=================================================== */
+function fmt(n) { return '¥'+Math.round(n).toLocaleString('ja-JP'); }
+
+function selYear() { return parseInt(document.getElementById('yrSel').value)||new Date().getFullYear(); }
+
+function filtered() {
+  const yr=selYear();
+  return [...dataA,...dataB].filter(r=>r.ci.getFullYear()===yr);
+}
+
+/* ===================================================
+   BANNER
+=================================================== */
+function updateBanner(rsv, yr) {
+  const now = new Date();
+  if (yr !== now.getFullYear()) {
+    document.getElementById('curRevenue').textContent='—';
+    document.getElementById('curStatus').textContent='他の年度を表示中';
+    document.getElementById('curRevenue').style.color='#4a5568';
+    document.getElementById('curProfit').textContent='—';
+    document.getElementById('curProfitSub').textContent='売上 − 経費';
+    document.getElementById('curProfit').style.color='#4a5568';
+    return;
+  }
+  const m = now.getMonth();
+  const rev = rsv.filter(r=>r.ci.getMonth()===m).reduce((s,r)=>s+r.amount,0);
+  const exp = totalExpMonth(yr, m);
+  const profit = rev - exp;
+  const pct = Math.round(rev/TARGET*100);
+  const mLabel = (now.getMonth()+1)+'月';
+
+  document.getElementById('curMonthLabel').textContent = mLabel+'の売上';
+  document.getElementById('curRevenue').textContent = fmt(rev);
+  document.getElementById('curRevenue').style.color = rev>=TARGET?'#276749':'#c53030';
+  document.getElementById('curStatus').textContent = rev>=TARGET
+    ? `✓ 目標達成！(${pct}%)`
+    : `目標まであと ${fmt(TARGET-rev)}（${pct}%）`;
+
+  document.getElementById('curProfit').textContent = fmt(profit);
+  document.getElementById('curProfit').style.color = profit>=0?'#276749':'#c53030';
+  document.getElementById('curProfitSub').textContent = `売上 ${fmt(rev)} − 経費 ${fmt(exp)}`;
+}
+
+/* ===================================================
+   MONTHLY SUMMARY
+=================================================== */
+function renderSummary(rsv, yr) {
+  const mo = Array.from({length:12}, (_,i)=>({
+    m:i+1, a:0, aN:0, aC:0, b:0, bN:0, bC:0
+  }));
+  rsv.forEach(r=>{
+    const idx=r.ci.getMonth();
+    if (r.src==='a') { mo[idx].a+=r.amount; mo[idx].aN+=r.nights; mo[idx].aC++; }
+    else             { mo[idx].b+=r.amount; mo[idx].bN+=r.nights; mo[idx].bC++; }
+  });
+
+  const totA=mo.reduce((s,m)=>s+m.a,0);
+  const totB=mo.reduce((s,m)=>s+m.b,0);
+  const totN=mo.reduce((s,m)=>s+m.aN+m.bN,0);
+  const totE=Array.from({length:12},(_,i)=>totalExpMonth(yr,i)).reduce((a,b)=>a+b,0);
+  const totRev=totA+totB;
+  const totP=totRev-totE;
+
+  let html=`<table class="summary-table"><thead><tr>
+    <th>月</th>
+    <th class="col-right"><span style="color:#FF5A5F">●</span> Airbnb</th>
+    <th class="col-right"><span style="color:#003580">●</span> Booking</th>
+    <th class="col-right">売上合計</th>
+    <th class="col-right text-red">経費合計</th>
+    <th class="col-right">純利益</th>
+    <th class="col-right">泊数</th>
+    <th class="col-center">目標達成</th>
+    <th>進捗</th>
+  </tr></thead><tbody>`;
+
+  mo.forEach((m,idx)=>{
+    const rev=m.a+m.b, exp=totalExpMonth(yr,idx), profit=rev-exp, nights=m.aN+m.bN;
+    const pct=Math.min(100,Math.round(rev/TARGET*100));
+    const barCol=rev>=TARGET?'#48bb78':rev>=TARGET*0.8?'#ed8936':'#fc8181';
+    const badge=rev>=TARGET
+      ?`<span class="badge badge-ok">✓ 達成</span>`
+      :rev>0
+        ?`<span class="badge badge-ng">✗ 未達</span>`
+        :`<span class="text-muted">—</span>`;
+    const profitHtml=rev>0||exp>0
+      ?`<span class="${profit>=0?'text-green':'text-orange'}">${fmt(profit)}</span>`
+      :'—';
+    html+=`<tr>
+      <td style="font-weight:600">${m.m}月</td>
+      <td class="col-right">${m.aC>0?fmt(m.a):'—'}</td>
+      <td class="col-right">${m.bC>0?fmt(m.b):'—'}</td>
+      <td class="col-right fw">${rev>0?fmt(rev):'—'}</td>
+      <td class="col-right text-red">${exp>0?fmt(exp):'—'}</td>
+      <td class="col-right">${profitHtml}</td>
+      <td class="col-right text-muted">${nights>0?nights+'泊':'—'}</td>
+      <td class="col-center">${badge}</td>
+      <td>${rev>0?`<div class="prog-wrap"><div class="prog-bg"><div class="prog-fill" style="width:${pct}%;background:${barCol}"></div></div><span class="prog-lbl">${pct}%</span></div>`:''}</td>
+    </tr>`;
+  });
+
+  html+=`</tbody><tfoot><tr>
+    <td style="font-weight:800">年間合計</td>
+    <td class="col-right">${fmt(totA)}</td>
+    <td class="col-right">${fmt(totB)}</td>
+    <td class="col-right">${fmt(totRev)}</td>
+    <td class="col-right text-red">${totE>0?fmt(totE):'—'}</td>
+    <td class="col-right"><span class="${totP>=0?'text-green':'text-orange'}">${totRev>0||totE>0?fmt(totP):'—'}</span></td>
+    <td class="col-right text-muted">${totN}泊</td>
+    <td colspan="2" style="font-size:13px;color:#4a5568;">目標年間 ${fmt(TARGET*12)}</td>
+  </tr></tfoot></table>`;
+
+  document.getElementById('summary').innerHTML = rsv.length===0
+    ? `<div class="empty"><div class="em">📊</div><p>CSVをアップロードすると月別集計が表示されます</p></div>`
+    : html;
+}
+
+/* ===================================================
+   RESERVATION LIST
+=================================================== */
+function renderRsv(rsv) {
+  if (rsv.length===0) {
+    document.getElementById('rsvList').innerHTML=
+      `<div class="empty"><div class="em">📋</div><p>CSVをアップロードすると予約一覧が表示されます</p></div>`;
+    return;
+  }
+  const sorted=[...rsv].sort((a,b)=>b.ci-a.ci);
+  let html=`<table class="rsv-table"><thead><tr>
+    <th>サイト</th><th>確認番号</th><th>ゲスト名</th>
+    <th>チェックイン</th><th>チェックアウト</th>
+    <th class="col-right">泊数</th><th class="col-right">売上金額</th><th>ステータス</th>
+  </tr></thead><tbody>`;
+  sorted.forEach(r=>{
+    const src=r.src==='a'
+      ?`<span class="src-dot dot-a"></span><span style="color:#FF5A5F;font-weight:600">Airbnb</span>`
+      :`<span class="src-dot dot-b"></span><span style="color:#003580;font-weight:600">Booking</span>`;
+    html+=`<tr>
+      <td>${src}</td>
+      <td style="font-size:12px;color:#718096">${r.code}</td>
+      <td>${r.guest}</td>
+      <td>${fmtD(r.ci)}</td><td>${fmtD(r.co)}</td>
+      <td class="col-right text-muted">${r.nights>0?r.nights+'泊':'—'}</td>
+      <td class="col-right fw">${r.amount>0?fmt(r.amount):r.raw||'—'}</td>
+      <td style="font-size:12px;color:#718096">${r.status}</td>
+    </tr>`;
+  });
+  html+=`</tbody></table>`;
+  document.getElementById('rsvList').innerHTML=html;
+}
+
+/* ===================================================
+   RENDER ALL
+=================================================== */
+function renderAll() {
+  const all=[...dataA,...dataB];
+  const years=[...new Set(all.map(r=>r.ci.getFullYear()))].sort((a,b)=>b-a);
+  const thisYear=new Date().getFullYear();
+  if (!years.includes(thisYear)) years.unshift(thisYear);
+
+  const sel=document.getElementById('yrSel');
+  const prev=parseInt(sel.value);
+  sel.innerHTML='';
+  years.forEach(y=>{
+    const o=document.createElement('option');
+    o.value=y; o.textContent=y+'年';
+    if(y===prev) o.selected=true;
+    sel.appendChild(o);
+  });
+
+  const yr=selYear();
+  document.getElementById('yearDisplay').textContent=yr+'年';
+
+  const rsv=filtered();
+  const cntA=rsv.filter(r=>r.src==='a').length;
+  const cntB=rsv.filter(r=>r.src==='b').length;
+  document.getElementById('rsvCount').textContent=
+    rsv.length>0?`合計 ${rsv.length} 件（Airbnb: ${cntA}件 / Booking.com: ${cntB}件）`:'';
+
+  renderExpTable(yr);
+  updateBanner(rsv, yr);
+  renderSummary(rsv, yr);
+  renderRsv(rsv);
+}
+
+/* ===================================================
+   INIT
+=================================================== */
+loadExpenses();
+renderAll();
 </script>
 </body>
 </html>
